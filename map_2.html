@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8' />
+        <title>Locate the user</title>
+        <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+        <script src="https://www.gstatic.com/firebasejs/4.8.1/firebase.js"></script>
+        <script>
+            // Initialize Firebase
+            var config = {
+                apiKey: "AIzaSyC95bzxzd2ENGpl8bjzi3BOluRJFxssqpU",
+                authDomain: "gpsfirebase-34c42.firebaseapp.com",
+                databaseURL: "https://gpsfirebase-34c42.firebaseio.com",
+                projectId: "gpsfirebase-34c42",
+                storageBucket: "gpsfirebase-34c42.appspot.com",
+                messagingSenderId: "872538691336"
+            };
+            firebase.initializeApp(config);
+        </script>
+        <script src='https://api.mapbox.com/mapbox-gl-js/v0.42.1/mapbox-gl.js'></script>
+        <link href='https://api.mapbox.com/mapbox-gl-js/v0.42.1/mapbox-gl.css' rel='stylesheet' />
+        <style>
+            body { margin:0; padding:0; }
+            #map { position:absolute; top:0; bottom:0; width:100%; }
+            
+            #marker {
+                background-image: url('https://svgshare.com/i/4y4.svg');
+                background-size: cover;
+                width: 50px;
+                height: 90px;
+                border-radius: 50%;
+                cursor: pointer;
+            }
+
+            #startmarker {
+                background-image: url('https://svgshare.com/i/4y4.svg');
+                background-size: cover;
+                width: 50px;
+                height: 90px;
+                border-radius: 50%;
+                cursor: pointer;
+            }
+
+            #huashan1914marker {
+                background-image: url('https://www.svgrepo.com/show/3747/up-arrow.svg');
+                background-size: cover;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                cursor: pointer;
+            }
+
+            .mapboxgl-popup {
+              max-width: 200px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id='map'></div>
+        <script>
+            mapboxgl.accessToken = 'pk.eyJ1IjoibGluZ2xpbmdsaSIsImEiOiJjamEya3IyaHgzYnZpMnhwY2MycTF3YWFpIn0.Y4VocxHtV1uHwwTmQXxlYQ'
+            var monument = [121.53213618742154, 25.04216386679323];
+            var map = new mapboxgl.Map({
+                container: 'map', // HTML container id
+                style: 'mapbox://styles/juby/cjc4pdpy34d4e2rocvywyq6uv', // style URL
+                center: monument, // starting position as [lng, lat]
+                zoom: 18,
+
+                pitch: 60,
+                bearing: -9.6,
+                hash: true
+            });
+            map.addControl(new mapboxgl.GeolocateControl({
+                positionOptions: {
+                    enableHighAccuracy: true
+                },
+                trackUserLocation: true
+            }));
+
+            map.on('load', function() {
+                // Insert the layer beneath any symbol layer.
+                var layers = map.getStyle().layers;
+
+                var labelLayerId;
+                for (var i = 0; i < layers.length; i++) {
+                    if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
+                        labelLayerId = layers[i].id;
+                        break;
+                    }
+                }
+
+                map.addLayer({
+                    'id': '3d-buildings',
+                    'source': 'composite',
+                    'source-layer': 'building',
+                    'filter': ['==', 'extrude', 'true'],
+                    'type': 'fill-extrusion',
+                    'minzoom': 15,
+                    'paint': {
+                        'fill-extrusion-color': '#705bf6',
+
+                        // use an 'interpolate' expression to add a smooth transition effect to the
+                        // buildings as the user zooms in
+                        'fill-extrusion-height': [
+                            "interpolate", ["linear"], ["zoom"],
+                            15, 0,
+                            15.5, ["get", "height"]
+                        ],
+                        'fill-extrusion-base': [
+                            "interpolate", ["linear"], ["zoom"],
+                            15, 0,
+                            15.05, ["get", "min_height"]
+                        ],
+                        'fill-extrusion-opacity': .8
+                    }
+                }, labelLayerId);
+
+                map.addLayer({
+                    "id": "route",
+                    "type": "line",
+                    "source": {
+                        "type": "geojson",
+                        "data": {
+                            "type": "Feature",
+                            "properties": {},
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                    [121.53268763832824, 25.042212441782183],
+                                    [121.53272129729476, 25.040237892722757],
+                                    [121.53157689898728, 25.040337002118946],
+                                    [121.5293217611516, 25.040847795431773],
+                                    [121.53001176629158, 25.04295190324858],
+                                    [121.53268763832824, 25.042212441782183],
+                                ]
+                            }
+                        }
+                    },
+                    "layout": {
+                        "line-join": "round",
+                        "line-cap": "round"
+                    },
+                    "paint": {
+                        "line-color": "#ad1cb6",
+                        "line-width": 25
+                    }
+                });
+            });
+
+            // create the popup
+            var popup = new mapboxgl.Popup()
+            .setText('Test');
+
+            // create DOM element for the marker
+            var el1 = document.createElement('marker1');
+            el1.id = 'marker';
+
+            // create the marker
+            new mapboxgl.Marker(el1)
+            .setLngLat([121.530740, 25.042484])
+            .addTo(map);
+
+            var start = document.createElement('start');
+            start.id = 'startmarker';
+
+            new mapboxgl.Marker(start)
+            .setLngLat([121.531960, 25.042163])
+            .addTo(map);
+
+            var huashan1914 = document.createElement('huashan1914');
+            huashan1914.id = 'huashan1914marker';
+            var huashan1914Bool = 0;
+            var huashan1914Ref = firebase.database().ref('huashan1914');
+            huashan1914Ref.on('value', gotData);
+            
+            function gotData(data) {
+                huashan1914Bool = data.val();
+                if(huashan1914Bool){
+                    new mapboxgl.Marker(huashan1914)
+                    .setLngLat([121.529877, 25.044083])
+                    .addTo(map);
+                }else{
+                    huashan1914.remove();
+                }
+            }
+
+        var nav = new mapboxgl.NavigationControl();
+        map.addControl(nav, 'top-left');
+
+        </script>
+    </body>
+</html>
